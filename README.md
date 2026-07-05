@@ -7,12 +7,27 @@ Built as a submission for the Google x Kaggle AI Course Capstone Project.
 ---
 
 ## 📋 Table of Contents
-1. [Problem Statement](#-problem-statement)
-2. [Proposed Solution](#-proposed-solution)
-3. [Architecture & Workflow](#-architecture--workflow)
-4. [Multi-Agent Collaboration Loop](#-multi-agent-collaboration-loop)
-5. [Setup & Running Instructions](#-setup--running-instructions)
-6. [Verification & Testing](#-verification--testing)
+1. [Key Course Concepts Demonstrated](#-key-course-concepts-demonstrated)
+2. [Problem Statement](#-problem-statement)
+3. [Proposed Solution](#-proposed-solution)
+4. [Architecture & Workflow](#-architecture--workflow)
+5. [Multi-Agent Collaboration Loop](#-multi-agent-collaboration-loop)
+6. [Setup & Running Instructions](#-setup--running-instructions)
+7. [Verification & Testing](#-verification--testing)
+
+---
+
+## 🎓 Key Course Concepts Demonstrated
+
+This project explicitly implements and showcases **five (5) core concepts** from the Google x Kaggle AI Course:
+
+1. **Multi-Agent Systems (ADK)**: We construct a root **Orchestrator Agent** that dynamically delegates sub-tasks to four specialized sub-agents (`text_extractor_agent`, `media_extractor_agent`, `categorizer_agent`, and `maps_agent`) using Google's Agent Development Kit (ADK).
+2. **Model Context Protocol (MCP)**: Our maps sub-agent integrates the official `@modelcontextprotocol/server-google-maps` server using ADK's native `McpToolset` to interface with the Google Maps API.
+3. **Agent Skills (Agents CLI)**: We designed project-scoped agent skills (`google_maps_saver_skill`, `multimodal_extractor_skill`) with dedicated `SKILL.md` instructions and run evaluation checks via the `agents-cli` framework.
+4. **Security & Privacy Gateways**:
+   * *PII Redaction*: Programmatic regex filters scrub emails and phone numbers before forwarding text to the LLM.
+   * *Injection Shield*: AI extraction is decoupled from execution. The LLM only parses raw text to JSON, while database writes are handled by immutable Python backend code.
+5. **Human-in-the-Loop Loop**: The popup UI features a 10-second countdown undo bar and a branch selection checklist to let users review and correct the agent's decisions.
 
 ---
 
