@@ -1,92 +1,51 @@
-# agent
+# TikTok Location Saver - Backend Server
 
-Simple ReAct agent
-Agent generated with `agents-cli` version `0.6.0`
-
-## Project Structure
-
-```
-agent/
-├── app/         # Core agent code
-│   ├── agent.py               # Main agent logic
-│   ├── fast_api_app.py        # FastAPI Backend server
-│   └── app_utils/             # App utilities and helpers
-├── tests/                     # Unit, integration, and load tests
-├── GEMINI.md                  # AI-assisted development guide
-└── pyproject.toml             # Project dependencies
-```
-
-> 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
-
-## Requirements
-
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **agents-cli**: Agents CLI - Install with `uv tool install google-agents-cli`
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-
-
-## Quick Start
-
-Install `agents-cli` and its skills if not already installed:
-
-```bash
-uvx google-agents-cli setup
-```
-
-Install required packages:
-
-```bash
-agents-cli install
-```
-
-Test the agent with a local web server:
-
-```bash
-agents-cli playground
-```
-
-You can also use features from the [ADK](https://adk.dev/) CLI with `uv run adk`.
-
-## Commands
-
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `agents-cli install` | Install dependencies using uv                                                         |
-| `agents-cli playground` | Launch local development environment                                                  |
-| `agents-cli lint`    | Run code quality checks                                                               |
-| `agents-cli eval`    | Evaluate agent behavior (generate, grade, analyze, and more — see `agents-cli eval --help`) |
-| `uv run pytest tests/unit tests/integration` | Run unit and integration tests                                                        || [A2A Inspector](https://github.com/a2aproject/a2a-inspector) | Launch A2A Protocol Inspector                                                        |
-
-## 🛠️ Project Management
-
-| Command | What It Does |
-|---------|--------------|
-| `agents-cli scaffold enhance` | Add CI/CD pipelines and Terraform infrastructure |
-| `agents-cli infra cicd` | One-command setup of entire CI/CD pipeline + infrastructure |
-| `agents-cli scaffold upgrade` | Auto-upgrade to latest version while preserving customizations |
+This is the Python backend server built using Google's Agent Development Kit (ADK) and FastAPI. It processes video extraction requests, runs the multi-agent pipeline, queries location APIs, and hosts the visual history dashboard.
 
 ---
 
-## Development
+## 🛠️ Requirements
 
-Edit your agent logic in `app/agent.py` and test with `agents-cli playground` - it auto-reloads on save.
+Before starting, ensure you have installed:
+* **Python 3.13**
+* **uv**: Extremely fast Python package manager and environment runner - [Install Guide](https://docs.astral.sh/uv/getting-started/installation/)
 
-## Deployment
+---
 
+## 🚀 Setup & Execution
+
+### Step 1: Configure Credentials
+1. Get a Gemini API Key from [Google AI Studio](https://aistudio.google.com/app/api-keys).
+2. Open the `.env` file at `agent/app/.env` and paste your key:
+   ```env
+   GOOGLE_API_KEY=YOUR_API_KEY_HERE
+   ```
+
+### Step 2: Start the FastAPI Server
+Run the following command in the `agent/` directory to automatically download dependencies, prepare the environment, and spin up the server:
 ```bash
-gcloud config set project <your-project-id>
-agents-cli deploy
+uv run python -m app.fast_api_app
+```
+The backend server will run on `http://localhost:8000`. You can visit the interactive history dashboard in your browser at:
+👉 `http://localhost:8000/dashboard`
+
+---
+
+## 🧪 Testing & Validation
+
+### Running Offline Mock Tests
+To verify the extraction logic, classification routing, and OpenStreetMap fallback handlers without consuming Gemini API tokens, run the mock test suite:
+```bash
+uv run pytest tests/unit/test_fast_api_mock.py
 ```
 
-To add CI/CD and Terraform, run `agents-cli scaffold enhance`.
-To set up your production infrastructure, run `agents-cli infra cicd`.
+### Running Evaluation Datasets
+We configure a custom evaluation suite under `tests/eval` to check for security containment (PII scrubbing, prompt injection defense) and categorization routing accuracy:
+```bash
+# Generate trace logs for the test cases
+make generate-traces
 
-## Observability
-
-Built-in telemetry exports to Cloud Trace, BigQuery, and Cloud Logging.
-
-## A2A Inspector
-
-This agent supports the [A2A Protocol](https://a2a-protocol.org/). Use the [A2A Inspector](https://github.com/a2aproject/a2a-inspector) to test interoperability.
-See the [A2A Inspector docs](https://github.com/a2aproject/a2a-inspector) for details.
+# Grade trace logs using custom LLM-as-judge metrics
+make grade
+```
+Traces will be stored in `artifacts/traces/generated_traces.json` for review.
