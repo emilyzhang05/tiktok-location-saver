@@ -188,7 +188,7 @@ async def process_tiktok_pipeline(task_id: str, url: str, caption: str, comments
         extracted = state.get("extracted_location", {})
 
         place_name = extracted.get("place_name")
-        city = extracted.get("city") or "New York City"
+        city = extracted.get("city")
         confidence = extracted.get("confidence", 0.0)
 
         # Fallback to multimodal visual/audio if text confidence is low
