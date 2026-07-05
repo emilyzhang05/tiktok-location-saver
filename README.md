@@ -6,47 +6,131 @@ Built as a submission for the Google x Kaggle AI Course Capstone Project.
 
 ---
 
-## 📌 Features
-
-* **Multi-Agent Orchestration**: Powered by Google's Agent Development Kit (ADK) with five coordinated sub-agents (Orchestration, Text Extraction, Multimodal Media Fallbacks, Categorization, and MCP Maps Resolution).
-* **Live Interactive Map**: Standalone web dashboard utilizing Leaflet.js to plot saved food, shopping, and sightseeing pins dynamically with custom color categories.
-* **Google My Maps Sync**: Dynamically generates and downloads styled KML files with pre-colored folder layers (Food = Green, Shopping = Purple, Sightseeing = Blue) for instant import and sync with your mobile Google Maps app.
-* **Security & Privacy Gateways**:
-  * Programmatic PII Scrubbing: Automatically redacts email addresses, phone numbers, and API keys before they hit external LLM traces.
-  * Decoupled AI Execution: The LLM acts solely as a parser returning JSON text; all file-writing and execution control remains in strict, locked-down server code to prevent prompt injection.
-* **Human-in-the-Loop Checklist**: Lets users resolve multi-branch ambiguities (e.g. multiple "Joe's Pizza" locations in NYC) and correct categories within a 10-second countdown window.
+## 📋 Table of Contents
+1. [Problem Statement](#-problem-statement)
+2. [Proposed Solution](#-proposed-solution)
+3. [Architecture & Workflow](#-architecture--workflow)
+4. [Multi-Agent Collaboration Loop](#-multi-agent-collaboration-loop)
+5. [Setup & Running Instructions](#-setup--running-instructions)
+6. [Verification & Testing](#-verification--testing)
 
 ---
 
-## 📁 Project Structure
+## 🚨 Problem Statement
 
-This repository is organized as a monorepo containing two sub-projects:
+Every day, travelers and food enthusiasts discover locations on TikTok. However, capturing these locations is a manual, tedious process:
+* **Unstructured Captions**: Descriptions contain colloquial nicknames or slang rather than clear addresses.
+* **ambiguity**: Videos often mention businesses with multiple branches (e.g. multiple "Joe's Pizza" locations in NYC), requiring manual selection.
+* **Privacy Exposure**: Social media comments contain user PII (emails, phone numbers) that shouldn't leak to public AI trace logs.
 
-```text
-tiktok-location-saver/
-├── .gitignore              # Global git ignore rules (ignores .env, .venv, OS cache)
-├── README.md               # ROOT README (this file)
-│
-├── agent/                  # Python Backend & AI Agent Project
-│   ├── app/                # Core FastAPI app and tools logic
-│   ├── tests/              # Offline unit test suites and eval configurations
-│   ├── skills/             # Project-scoped ADK skills
-│   ├── Dockerfile          # Container setup
-│   ├── pyproject.toml      # Backend Python dependencies (FastAPI, google-genai)
-│   └── README.md           # Technical guide for starting the Python server
-│
-└── extension/              # Chrome Extension Project
-    ├── manifest.json       # MV3 permissions and background workers
-    ├── content-script.js   # Content DOM scraping script
-    ├── popup/              # Glassmorphic user interface popup
-    └── README.md           # Instructions for loading the extension in Chrome
+---
+
+## 💡 Proposed Solution
+
+The **TikTok-to-Google-Maps Location Saver** bridges the gap between social media discovery and physical travel utility:
+1. **Asynchronous Scraping**: A Manifest V3 Chrome Extension scrapes captions and comments from active TikTok tabs.
+2. **PII Scrubbing Gateway**: Regex filters redact personal emails, phone numbers, and keys before payloads hit the LLM.
+3. **Multi-Agent Pipeline**: Specialized ADK sub-agents extract place names, categorize them, and query mapping coordinates.
+4. **Interactive Map Dashboard**: A standalone Leaflet.js dashboard plots your saved pins color-coded by category.
+5. **My Maps Sync**: Downloads styled KML files with pre-colored folder layers for one-click import into Google My Maps.
+
+---
+
+## 📐 Architecture & Workflow
+
+Below is the end-to-end data flow from the Chrome Extension trigger to local storage and Google Maps sync:
+
+```mermaid
+graph TD
+    A[User views TikTok on Desktop] --> B(Click Extension Button in Popup)
+    B --> C[Extension Script Scrapes DOM]
+    C -->|Extracts Caption & Comments| D[Send Payload to Orchestrator Agent]
+    
+    subgraph "Multi-Agent Backend (ADK)"
+        D --> E["Orchestrator Agent (root_agent)"]
+        E -->|Extract text| TX[Text Extractor Agent]
+        TX -->|Return place & city| E
+        E -->|If location missing| F[Media Extractor Agent]
+        F -->|Extracts audio/video clues| E
+        E -->|Categorize place| G[Categorizer Agent]
+        G -->|Determine category| E
+        E -->|Coordinate resolution| H[Maps Agent using MCP Server]
+        H -->|Place search| E
+    end
+    
+    E --> I{Location verified?}
+    I -- Yes --> J[Save to Local JSON Database]
+    I -- No / Multiple Branches --> K[Return choice checklist to popup UI]
+    K -->|User selects branch| J
+    
+    J --> L[Dashboard Web View]
+    subgraph "Dashboard UI"
+        L --> M[Interactive Leaflet Map]
+        L --> N[Category Grid & Search Filters]
+        L --> O[Google My Maps KML Export]
+    end
+    
+    O -->|User imports KML| P[Google My Maps web service]
+    P -->|Auto-Syncs| Q[Official Google Maps Mobile App]
 ```
 
 ---
 
-## 🚀 Quick Start Links
+## 🤖 Multi-Agent Collaboration Loop
 
-For detailed, step-by-step installation and run instructions, please refer to the sub-project guides:
+Our backend coordinates five specialized sub-agents using a **text-first priority and fallback loop**:
 
-1. **[Backend Server Setup Guide (agent/README.md)](file:///Users/zemil/Library/CloudStorage/OneDrive-NanyangTechnologicalUniversity/Google%20x%20Kaggle%20Course/Capstone%20Project/agent/README.md)** - Run the local FastAPI backend server and unit tests.
-2. **[Chrome Extension Guide (extension/README.md)](file:///Users/zemil/Library/CloudStorage/OneDrive-NanyangTechnologicalUniversity/Google%20x%20Kaggle%20Course/Capstone%20Project/extension/README.md)** - Install the popup interface in Google Chrome.
+1. **Text Priority**: The **Orchestrator Agent** starts by delegating the scraped TikTok caption and comment text to the **Text Extractor Agent**.
+2. **Multimodal Fallback**: If the text extraction yields no places (e.g., the creator didn't write the location in the caption), the Orchestrator falls back to the **Media Extractor Agent** to transcribe audio speech and run OCR on key video frames.
+3. **Semantic Categorization**: Once a location name is successfully extracted, the Orchestrator hands it to the **Categorizer Agent** to classify it as *Food*, *Shopping*, or *Sightseeing*.
+4. **MCP Resolution**: Finally, the Orchestrator invokes the **Maps Agent** via the Google Maps MCP Server tools to look up coordinates and Place IDs, formatting the final result for the database.
+
+---
+
+## 🚀 Setup & Running Instructions
+
+### Prerequisites
+* **Python 3.13**
+* **uv**: Python package manager and runner - [Install Guide](https://docs.astral.sh/uv/getting-started/installation/)
+* **Google AI Studio API Key** - [Get API Key](https://aistudio.google.com/app/api-keys)
+
+---
+
+### Step 1: Start the Backend FastAPI Server
+1. Clone this repository and navigate to the `agent` folder:
+   ```bash
+   cd agent
+   ```
+2. Configure your credentials by creating or editing `app/.env` and pasting your key:
+   ```env
+   GOOGLE_API_KEY=YOUR_API_KEY_HERE
+   ```
+3. Start the FastAPI server (this will automatically configure dependencies and boot the server):
+   ```bash
+   uv run python -m app.fast_api_app
+   ```
+   * The server runs on `http://localhost:8000`.
+   * The visual dashboard is accessible at `http://localhost:8000/dashboard`.
+
+---
+
+### Step 2: Load the Chrome Extension
+1. Open Google Chrome and navigate to `chrome://extensions/`.
+2. Toggle **Developer mode** on in the top-right corner.
+3. Click **Load unpacked** in the top-left corner.
+4. Select the `extension/` folder in your project root:
+   ```text
+   tiktok-location-saver/extension/
+   ```
+
+---
+
+## 🧪 Verification & Testing
+
+### Running Mock Test Suite
+To verify the extraction logic, classification routing, and coordinate resolution without consuming Gemini API quota, run the mock unit test suite:
+```bash
+cd agent
+uv run pytest tests/unit/test_fast_api_mock.py
+```
+All tests should pass cleanly (`2 passed`).
