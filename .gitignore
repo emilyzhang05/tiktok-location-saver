@@ -1,0 +1,10 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+agent/app/.env
+agent/app/__pycache__/
+agent/.pytest_cache/
+agent/.venv/
+agent/artifacts/
+agent/saved_places.json

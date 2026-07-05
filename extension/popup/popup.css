@@ -1,0 +1,405 @@
+/* CSS styles for TikTok Location Saver popup */
+
+:root {
+    --bg-dark: #0f1016;
+    --glass-bg: rgba(22, 24, 38, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --color-primary: #a855f7;
+    --color-success: #10b981;
+    --color-food: #10b981;
+    --color-shopping: #a855f7;
+    --color-sightseeing: #0ea5e9;
+    --glow-primary: rgba(168, 85, 247, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    width: 350px;
+    min-height: 250px;
+    overflow: hidden;
+}
+
+.glass-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.2px;
+    background: linear-gradient(135deg, #a855f7 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dashboard-link {
+    cursor: pointer;
+    font-size: 1.1rem;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.dashboard-link:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Common View Styles */
+.view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.info-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.info-icon.error {
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.subtitle {
+    margin-bottom: 4px;
+}
+
+/* Buttons */
+.btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #0ea5e9 100%);
+    color: #ffffff;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 15px var(--glow-primary);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Scanner Animation View */
+.scanner-container {
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(168, 85, 247, 0.3);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.scanner-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.scan-line {
+    width: 100%;
+    height: 3px;
+    background: #a855f7;
+    position: absolute;
+    box-shadow: 0 0 8px #a855f7;
+    animation: scanMove 2s infinite linear;
+}
+
+.step-tracker {
+    font-size: 0.78rem;
+    color: #a855f7;
+    font-weight: 500;
+}
+
+/* Single Match Layout */
+.success-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.success-icon {
+    width: 22px;
+    height: 22px;
+    background: var(--color-success);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.place-details {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    padding: 16px;
+    border-radius: 16px;
+    text-align: left;
+}
+
+.place-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.place-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.category-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-badge.badge-Food {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-food);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.category-badge.badge-Shopping {
+    background: rgba(168, 85, 247, 0.12);
+    color: var(--color-shopping);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+.category-badge.badge-Sightseeing {
+    background: rgba(14, 165, 233, 0.12);
+    color: var(--color-sightseeing);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.place-address {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Countdown Panel */
+.countdown-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.01);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7, #0ea5e9);
+    width: 100%;
+    transition: width 0.1s linear;
+}
+
+.countdown-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.dropdown-select {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text-main);
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* Multiple Branches View */
+.branches-list {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+}
+
+/* Custom Scrollbar */
+.branches-list::-webkit-scrollbar {
+    width: 4px;
+}
+.branches-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.branch-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: left;
+}
+
+.branch-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.branch-checkbox {
+    accent-color: #a855f7;
+    cursor: pointer;
+}
+
+.branch-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.branch-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.branch-address {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Search Form for Manual Mode */
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.search-form input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    outline: none;
+    font-family: inherit;
+}
+
+.search-form input:focus {
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* Keyframes */
+@keyframes scanMove {
+    0% { top: 0%; }
+    50% { top: 96%; }
+    100% { top: 0%; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Location Saver - Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Leaflet.js Mapping Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <style>
+        :root {
+            --bg-dark: #090a10;
+            --glass-bg: rgba(18, 20, 32, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --color-food: #10b981;
+            --color-shopping: #a855f7;
+            --color-sightseeing: #0ea5e9;
+            --glow-food: rgba(16, 185, 129, 0.2);
+            --glow-shopping: rgba(168, 85, 247, 0.2);
+            --glow-sightseeing: rgba(14, 165, 233, 0.2);
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        /* Decorative blur circles */
+        .decor-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(16, 185, 129, 0.1);
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 24px 32px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .logo-section h1 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a855f7 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-section p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-badge .num {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .stat-badge .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Filter Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 6px;
+            border-radius: 16px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn[data-category="Food"].active {
+            background: var(--color-food);
+            box-shadow: 0 0 15px var(--glow-food);
+        }
+
+        .tab-btn[data-category="Shopping"].active {
+            background: var(--color-shopping);
+            box-shadow: 0 0 15px var(--glow-shopping);
+        }
+
+        .tab-btn[data-category="Sightseeing"].active {
+            background: var(--color-sightseeing);
+            box-shadow: 0 0 15px var(--glow-sightseeing);
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            padding-left: 45px;
+            border-radius: 16px;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.95rem;
+            opacity: 0.6;
+        }
+
+        /* Places Grid */
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        /* Place Card */
+        .place-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .place-card.card-Food {
+            box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.05), 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .place-card.card-Shopping {
+            box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.05), 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .place-card.card-Sightseeing {
+            box-shadow: inset 0 0 12px rgba(14, 165, 233, 0.05), 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .place-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: #ffffff;
+        }
+
+        .category-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-Food {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-food);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .badge-Shopping {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--color-shopping);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .badge-Sightseeing {
+            background: rgba(14, 165, 233, 0.15);
+            color: var(--color-sightseeing);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        .place-address {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .place-address:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+            margin-top: auto;
+        }
+
+        .rating {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #f59e0b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Dropdown selection for category updates */
+        .category-select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .category-select:focus {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            backdrop-filter: blur(15px);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                max-width: none;
+            }
+        /* Leaflet Dark Customizations */
+        .leaflet-container {
+            background-color: #0b0c16 !important;
+            font-family: var(--font-sans) !important;
+        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: rgba(18, 20, 32, 0.9) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(10px) !important;
+            border-radius: 12px !important;
+            font-size: 0.88rem !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+        }
+        .leaflet-popup-content {
+            margin: 12px !important;
+            line-height: 1.4 !important;
+        }
+        .leaflet-bar {
+            border: 1px solid var(--glass-border) !important;
+            box-shadow: none !important;
+            border-radius: 8px !important;
+            overflow: hidden;
+        }
+        .leaflet-bar a {
+            background-color: rgba(18, 20, 32, 0.8) !important;
+            color: #ffffff !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+            transition: all 0.2s;
+        }
+        .leaflet-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="decor-circle circle-1"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>TikTok Map Saver</h1>
+                <p>Ambient agentic pipeline capturing locations you discover</p>
+                <button onclick="exportKml()" class="export-btn" style="margin-top: 12px; background: linear-gradient(135deg, #a855f7 0%, #0ea5e9 100%); color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2); transition: transform 0.2s, box-shadow 0.2s;">
+                    📥 Export to Google My Maps (KML)
+                </button>
+            </div>
+            <div class="stats">
+                <div class="stat-badge">
+                    <div class="num" id="stat-all">0</div>
+                    <div class="label">Places</div>
+                </div>
+                <div class="stat-badge" style="border-bottom: 3px solid var(--color-food)">
+                    <div class="num" id="stat-food">0</div>
+                    <div class="label">Food</div>
+                </div>
+                <div class="stat-badge" style="border-bottom: 3px solid var(--color-shopping)">
+                    <div class="num" id="stat-shopping">0</div>
+                    <div class="label">Shopping</div>
+                </div>
+                <div class="stat-badge" style="border-bottom: 3px solid var(--color-sightseeing)">
+                    <div class="num" id="stat-sightseeing">0</div>
+                    <div class="label">Sightseeing</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="tabs">
+                <button class="tab-btn active" data-category="All">All</button>
+                <button class="tab-btn" data-category="Food">Food</button>
+                <button class="tab-btn" data-category="Shopping">Shopping</button>
+                <button class="tab-btn" data-category="Sightseeing">Sightseeing</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search by name, address or city...">
+            </div>
+        </div>
+
+        <!-- Interactive Map Container -->
+        <div id="map-container" style="margin-bottom: 40px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+            <div id="map" style="height: 380px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); z-index: 1;"></div>
+        </div>
+
+        <!-- Places Grid -->
+        <div class="places-grid" id="places-container">
+            <!-- Dynamic Injection -->
+        </div>
+    </div>
+
+    <script>
+        let allPlaces = [];
+        let currentFilter = "All";
+        let map;
+        let markersLayer;
+
+        // Initialize Leaflet Map with a Custom Dark Theme
+        function initMap() {
+            // Default center is Manhattan, NY
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([40.7306, -73.9873], 13);
+
+            // Dark Matter CartoDB Tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            markersLayer = L.layerGroup().addTo(map);
+        }
+
+        // Fetch history data from API
+        async function fetchPlaces() {
+            try {
+                const response = await fetch('/api/history');
+                allPlaces = await response.json();
+                updateStats();
+                renderPlaces();
+            } catch (err) {
+                console.error("Failed to load history:", err);
+            }
+        }
+
+        // Calculate and update stats badges
+        function updateStats() {
+            document.getElementById('stat-all').innerText = allPlaces.length;
+            document.getElementById('stat-food').innerText = allPlaces.filter(p => p.category === 'Food').length;
+            document.getElementById('stat-shopping').innerText = allPlaces.filter(p => p.category === 'Shopping').length;
+            document.getElementById('stat-sightseeing').innerText = allPlaces.filter(p => p.category === 'Sightseeing').length;
+        }
+
+        // Render card layout based on search and filters, and update map markers
+        function renderPlaces() {
+            const container = document.getElementById('places-container');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+
+            // Filter logic
+            let filtered = allPlaces;
+            if (currentFilter !== "All") {
+                filtered = filtered.filter(p => p.category === currentFilter);
+            }
+
+            if (searchVal) {
+                filtered = filtered.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(searchVal)) || 
+                    (p.address && p.address.toLowerCase().includes(searchVal)) || 
+                    (p.city && p.city.toLowerCase().includes(searchVal))
+                );
+            }
+
+            // Update Map Markers
+            if (markersLayer) {
+                markersLayer.clearLayers();
+                filtered.forEach(place => {
+                    const lat = parseFloat(place.latitude);
+                    const lon = parseFloat(place.longitude);
+                    if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
+                        let color = '#a855f7'; // Shopping
+                        if (place.category === 'Food') color = '#10b981';
+                        if (place.category === 'Sightseeing') color = '#0ea5e9';
+
+                        const marker = L.circleMarker([lat, lon], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#ffffff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.9
+                        });
+
+                        const popupContent = `
+                            <div style="padding: 2px;">
+                                <strong style="font-family: Outfit, sans-serif; font-size: 0.95rem; color: #ffffff;">${place.name}</strong><br/>
+                                <span style="font-size: 0.75rem; color: #9ca3af; display: inline-block; margin-top: 4px;">📍 ${place.address}</span><br/>
+                                <span style="display: inline-block; margin-top: 6px; font-weight: bold; color: ${color}; font-size: 0.7rem; text-transform: uppercase;">${place.category}</span>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                        markersLayer.addLayer(marker);
+                    }
+                });
+
+                // Auto-center map to fit markers
+                const layers = markersLayer.getLayers();
+                if (layers.length > 0) {
+                    const group = new L.featureGroup(layers);
+                    map.fitBounds(group.getBounds().pad(0.15));
+                }
+            }
+
+            // Check empty state
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📍</div>
+                        <h3>No Saved Locations</h3>
+                        <p>Save places from TikTok using the Chrome Extension to see them populate here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Map and inject card elements
+            container.innerHTML = filtered.map(place => `
+                <div class="place-card card-${place.category}" id="card-${place.place_id}">
+                    <div>
+                        <div class="card-header">
+                            <div class="place-title">${place.name}</div>
+                            <span class="category-badge badge-${place.category}">${place.category}</span>
+                        </div>
+                        <div class="place-address" onclick="openMaps('${place.address}', '${place.name}')">
+                            📍 ${place.address}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="rating">⭐ ${place.rating || '4.5'}</div>
+                        <select class="category-select" onchange="updateCategory('${place.place_id}', '${place.category}', this.value)">
+                            <option value="Food" ${place.category === 'Food' ? 'selected' : ''}>Food</option>
+                            <option value="Shopping" ${place.category === 'Shopping' ? 'selected' : ''}>Shopping</option>
+                            <option value="Sightseeing" ${place.category === 'Sightseeing' ? 'selected' : ''}>Sightseeing</option>
+                        </select>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open in Google Maps
+        function openMaps(address, name) {
+            const query = encodeURIComponent(`${name}, ${address}`);
+            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+        }
+
+        // Export KML file
+        function exportKml() {
+            window.location.href = '/api/export/kml';
+        }
+
+        // Handle category updates dynamically
+        async function updateCategory(placeId, oldCategory, newCategory) {
+            try {
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        place_id: placeId,
+                        old_category: oldCategory,
+                        new_category: newCategory
+                    })
+                });
+
+                if (response.ok) {
+                    // Update locally
+                    const place = allPlaces.find(p => p.place_id === placeId);
+                    if (place) place.category = newCategory;
+                    updateStats();
+                    renderPlaces();
+                } else {
+                    console.error("Failed to update category");
+                }
+            } catch (err) {
+                console.error("Error updating category:", err);
+            }
+        }
+
+        // Setup filter tab clicks
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-category');
+                renderPlaces();
+            });
+        });
+
+        // Setup search polling
+        document.getElementById('search-input').addEventListener('input', renderPlaces);
+
+        // Initial trigger
+        initMap();
+        fetchPlaces();
+    </script>
+</body>
+</html>

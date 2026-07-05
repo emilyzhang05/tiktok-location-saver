@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Location Saver</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="glass-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">📍 TikTok Location Saver</div>
+            <div class="dashboard-link" id="btn-dashboard" title="Open Dashboard">🖥️</div>
+        </header>
+
+        <!-- Dynamic Main Views -->
+        <main>
+            <!-- View 1: Not on TikTok -->
+            <div id="view-invalid" class="view hidden">
+                <div class="info-icon">🌐</div>
+                <h3>Navigate to TikTok</h3>
+                <p>Open a TikTok video on your browser to extract and save its location.</p>
+            </div>
+
+            <!-- View 2: Processing Scanner -->
+            <div id="view-processing" class="view hidden">
+                <div class="scanner-container">
+                    <div class="scanner-box">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+                <h3>Extracting Location...</h3>
+                <div class="step-tracker" id="step-text">Reading caption...</div>
+            </div>
+
+            <!-- View 3: Single Match Auto-Saved -->
+            <div id="view-single" class="view hidden">
+                <div class="success-header">
+                    <div class="success-icon">✓</div>
+                    <h3>Location Saved!</h3>
+                </div>
+                
+                <div class="place-details">
+                    <div class="place-title-row">
+                        <span id="single-name" class="place-title">Place Name</span>
+                        <span id="single-category" class="category-badge">Food</span>
+                    </div>
+                    <p id="single-address" class="place-address">123 Place Street, City</p>
+                </div>
+
+                <!-- 10s Countdown / Undo Panel -->
+                <div class="countdown-panel">
+                    <div class="progress-bar-bg">
+                        <div id="countdown-progress" class="progress-bar-fill"></div>
+                    </div>
+                    <div class="countdown-label">Auto-saving in <span id="secs-left">10</span>s...</div>
+                    <div class="button-group">
+                        <select id="single-category-override" class="dropdown-select">
+                            <option value="" disabled selected>Change Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Sightseeing">Sightseeing</option>
+                        </select>
+                        <button id="btn-undo" class="btn btn-secondary">Undo Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 4: Multiple Matches (Pre-checked) -->
+            <div id="view-multiple" class="view hidden">
+                <h3>Select Branches to Save</h3>
+                <p class="subtitle">Multiple matching locations found. Save all or select specific ones:</p>
+                
+                <div class="branches-list" id="branches-container">
+                    <!-- Dynamic Checklist -->
+                </div>
+
+                <button id="btn-save-multiple" class="btn btn-primary">Save Selected</button>
+            </div>
+
+            <!-- View 5: No Matches (Manual Lookup) -->
+            <div id="view-none" class="view hidden">
+                <div class="info-icon">❓</div>
+                <h3>No Locations Found</h3>
+                <p>We couldn't detect a location. Search manually below to link this TikTok:</p>
+                
+                <div class="search-form">
+                    <input type="text" id="manual-search-input" placeholder="Type restaurant, store, museum name...">
+                    <button id="btn-manual-search" class="btn btn-primary">Search Google Maps</button>
+                </div>
+            </div>
+
+            <!-- View 6: Error -->
+            <div id="view-error" class="view hidden">
+                <div class="info-icon error">⚠️</div>
+                <h3>An Error Occurred</h3>
+                <p id="error-message">Could not connect to backend.</p>
+                <button id="btn-retry" class="btn btn-primary">Try Again</button>
+            </div>
+        </main>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

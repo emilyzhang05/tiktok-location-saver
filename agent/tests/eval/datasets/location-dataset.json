@@ -1,0 +1,25 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "explicit_caption_industrie",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Extract location from: Caption: Loved our lunch at L'Industrie Pizzeria in New York! The burrata slice is a must. Comments: []"}]
+      }
+    },
+    {
+      "eval_case_id": "comment_mention_soho_bagels",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Extract location from: Caption: Checking out this cute bagel spot in Soho today! Comments: ['This is Soho Bagels, they have amazing spreads!', 'Wait is that Prince Street?']"}]
+      }
+    },
+    {
+      "eval_case_id": "multiple_branches_joes_pizza",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Extract location from: Caption: Trying out Joe's Pizza in NY. Comments: ['best slices in greenwich village']"}]
+      }
+    }
+  ]
+}
